@@ -3,7 +3,7 @@ import math
 def distance( p1, p2 ):
     return math.sqrt( ( p1[0] - p2[0] ) ** 2 + ( p1[1] - p2[1] ) ** 2 )
 
-#returns a path  (list of points)through s with high value
+#returns a path (list of points) through s with high value
 def ellinit_replacement( s1, start_point, end_point, tmax ):
     s = list( s1 )
     path = [ start_point, end_point ]
@@ -36,18 +36,19 @@ def init_replacement( s1, start_point, end_point, tmax ):
     s = list( s1 )
     L = len( s ) if len( s ) <= 10 else 10
     if( L == 0 ):
-        print 'something is probably wrong'
+        #print 'something is probably wrong'
+        #actually maybe not
         return [ [ start_point, end_point ] ]
 
+    #decorate and sort by weight
     dsub = sorted( [ ( x[4], x ) for x in s ] )[::-1] #this is different
     ls = dsub[ :L ] 
     rest = dsub[ L: ]
     paths = []
     for i in xrange( L ):
         path = [ start_point, ls[ i ][1] , end_point ] 
-        #length = ls[ i ][0]
         length = distance( path[0], path[1] ) + distance( path[1], path[2] )
-        assert( length == distance( path[0], path[1] ) + distance( path[1], path[2] ) )
+        assert( length < tmax )
         arest = ls[ :i ] + ls[ i + 1: ] + rest
         arest = [ x[1] for x in arest ] #undecorate
         assert( len( arest ) + len( path ) == len( s ) + 2 )
@@ -74,19 +75,17 @@ def init_replacement( s1, start_point, end_point, tmax ):
         if( length < tmax ):
             paths.append( path )
 
-    assert( len( [ x[1] for x in sorted( [ ( sum( [ y[2] for y in z ] ), z ) for z in paths ]
-        )[::-1] ] ) > 0 )
+    assert( len( paths ) > 0 )
     return [ x[1] for x in sorted( [ ( sum( [ y[2] for y in z ] ), z ) for z in paths ] )[::-1] ]
 
 
 #returns the subset of s that is on/in the ellipse defined by foci f1, f2 and the major axis
 def ell_sub( axis, f1, f2, s ):
-    result = 0
-    for p in s:
-        result = result << 1
-        if( distance( p, f1 ) + distance( p, f2 ) <= axis ):
-            result = result | 1
-    return [ s[ x ] for x in xrange( len( s ) ) if ( result >> x ) & 1 ]
+    result = []
+    for item in s:
+        if( distance( item, f1 ) + distance( item, f2 ) <= axis ):
+            result.append( item )
+    return result
 
 #returns a list of L paths with the best path in the first position
 def initialize( s, start_point, end_point, tmax ):

@@ -4,7 +4,7 @@ import time
 import oph
 
 #fitness will take a set s and a set of weights and return a tuple containing the fitness and the best path
-def fitness( chrom, s, start_point, end_point ):
+def fitness( chrom, s, start_point, end_point, tmax ):
     augs = []
     for i in xrange( len( s ) ):
         augs.append( ( s[ i ][0],
@@ -47,19 +47,23 @@ def mutate( chrom, mchance, msigma ):
 def run_alg( f, tmax, N ):
     random.seed()
     cpoints = []
+    an_unused_value = f.readline() # ignore first line of file
     for i in xrange( N ):
         cpoints.append( tuple( [ float( x ) for x in f.readline().split() ] + [ i, 0 ] ) )
     start_point = cpoints.pop( 0 )
     end_point = cpoints.pop( 0 )
-    popsize = 20
-    genlimit = 50
+    assert( oph.distance( start_point, end_point ) < tmax )
+    popsize = 10
+    genlimit = 10
     kt = 5
     isigma = 10
     msigma = 7
-    mchance = 1
+    mchance = 2
     elitismn = 2
     if( debug ):
         print 'data set size:', len( cpoints ) + 2
+        print 'tmax:         ', tmax
+        print 'N:            ', N
         print 'parameters:'
         print 'generations:     ', genlimit
         print 'population size: ', popsize
@@ -74,7 +78,7 @@ def run_alg( f, tmax, N ):
         chrom = []
         for j in xrange( len( cpoints ) ):
             chrom.append( random.gauss( 0, isigma ) )
-        chrom = ( fitness( chrom, cpoints, start_point, end_point )[0], chrom )
+        chrom = ( fitness( chrom, cpoints, start_point, end_point, tmax )[0], chrom )
         while( i - j > 0 and j < elitismn and chrom > pop[ i - 1 - j ] ):
             j += 1
         pop.insert( i - j, chrom )
@@ -87,7 +91,7 @@ def run_alg( f, tmax, N ):
             parents = sorted( random.sample( pop, kt ) )[ kt - 2: ] #optimize later
             #crossover and mutate
             offspring = mutate( crossover( parents[0][1], parents[1][1] ), mchance, msigma )
-            offspring = ( fitness( offspring, cpoints, start_point, end_point )[0], offspring )
+            offspring = ( fitness( offspring, cpoints, start_point, end_point, tmax )[0], offspring )
             if( offspring[0] > bestfit ):
                 bestfit = offspring[0]
                 print bestfit
@@ -101,7 +105,7 @@ def run_alg( f, tmax, N ):
                 nextgen.append( offspring )
         pop = nextgen + pop[ popsize: ]
 
-    bestchrom = sorted( pop )[ popsize + elitismn - 1 ] #optimize later
+    bestchrom = sorted( pop )[ popsize + elitismn - 1 ] 
     end_time = time.clock()
 
     print 'time:'
@@ -109,7 +113,7 @@ def run_alg( f, tmax, N ):
     print 'best fitness:'
     print bestchrom[0]
     print 'best path:'
-    best_path = fitness( bestchrom[1], cpoints, start_point, end_point )[1]
+    best_path = fitness( bestchrom[1], cpoints, start_point, end_point, tmax )[1]
     print [ x[3] for x in best_path ]
 
     print 'their stuff:'
@@ -128,13 +132,10 @@ def run_alg( f, tmax, N ):
     print 'OK' if total_distance <= tmax else 'not OK'
     print 'tmax:          ', tmax
     print 'total distance:', total_distance
+    return ( bestchrom[0], end_time - start_time )
 
 if( __name__ ==  '__main__' ):
     debug = True if 'd' in sys.argv else False
-    #f = open( 'test instances/tsiligirides_problem_3_budget_015.txt' )
-    f = open( sys.argv[1] )
-    of = open( sys.argv[1] + '_results.dat', 'w' )
-    #tmax = int( f.readline().split()[0] )
-    tmax = int( sys.argv[2] )
-    N = int( sys.argv[3] )
-    run_alg( f, tmax, N )
+    run_alg( open( sys.argv[1] ), int( sys.argv[2] ), int( sys.argv[3] ) )
+else:
+    debug = False
