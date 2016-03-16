@@ -13,8 +13,8 @@ for i in xrange( 33 ):
     cpoints.append( tuple( [ float( x ) for x in f.readline().split() ] + [ i, 0 ] ) )
 start_point = cpoints.pop( 0 )
 end_point = cpoints.pop( 0 )
-popsize = 200
-genlimit = 100
+popsize = 20
+genlimit = 50
 kt = 5
 isigma = 15
 musigma = 7
@@ -37,7 +37,7 @@ def fitness( chrom ):
                        cpoints[ i ][1],
                        cpoints[ i ][2],
                        cpoints[ i ][3], 
-                       cpoints[ i ][4] + chrom[ i ][4] ) )
+                       cpoints[ i ][4] + chrom[ i ] ) )
     if debug:
         print 'fitness---------------------------------'
         print 'augs:'
@@ -67,15 +67,8 @@ def crossover( c1, c2 ):
         return c2[:point] + c1[point:]
 
 def mutate( chrom ):
-    for i in xrange( len( chrom ) ):
-        mulist = []
-        for j in xrange( 4, len( chrom[ i ] ) ):
-            if( random.randrange( mchance ) == 0 ):
-                mulist.append( chrom[ i ][ j ] + random.gauss( 0, musigma ))
-            else:
-                mulist.append( chrom[ i ][ j ] )
-        chrom[ i ] = tuple( [0, 0, 0, 0] + mulist )
-    return chrom
+    return [ x + random.gauss( 0, musigma ) if random.randrange( mchance ) == 0  else x for x in
+            chrom ]
 
 start_time = time.clock()
 #generate initial random population
@@ -83,12 +76,11 @@ pop = []
 for i in xrange( popsize + elitismn ):
     chrom = []
     for j in xrange( len( cpoints ) ):
-        chrom.append( ( 0, 0, 0, 0, random.gauss( 0, isigma ) ) )
+        chrom.append( random.gauss( 0, isigma ) )
     chrom = ( fitness( chrom )[0], chrom )
     while( i - j > 0 and j < elitismn and chrom > pop[ i - 1 - j ] ):
         j += 1
     pop.insert( i - j, chrom )
-    #pop.append( ( fitness( chrom )[0], chrom ) )
 
 bestfit = 0
 for i in xrange( genlimit ):
