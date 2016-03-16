@@ -1,0 +1,13 @@
+orienteering - TSP with a limit on weight traveled; find highest total reward. also called bank robber's problem (maybe only with deadlines).
+
+heuristic:
+1. elliptical subset: 
+major axis <- tmax
+f1, f2 <- start, end points
+subset is points that are on/in the ellipse
+
+2. initialization:
+greedily add shortest path, ignoring reward
+create 10 or len( subset ) paths, whichever is shortest:
+	find first 10 closest points (or all points) to start and end points
+
